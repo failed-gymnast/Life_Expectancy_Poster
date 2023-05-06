@@ -96,10 +96,14 @@ ggplot(life, aes(y = life_ex, x = Schooling)) +
   geom_smooth(method = 'lm', se = F, color = "darkcyan", size = 2) +
   labs(x = 'Years of Schooling',
        y = 'Life Expectancy') +
-  theme_minimal() +
+  theme_classic() +
   theme(
-    axis.title.y = element_text(face = 'bold'),
-    axis.title.x = element_text(face = 'bold'))
+    axis.title.y = element_text(face = 'bold',
+                  margin = margin(t = 0, r = 15, b = 0, l = 5),size=15),
+    axis.title.x = element_text(face = 'bold',
+                                margin = margin(t = 15, r = 0, b = 5, l = 0),size=15),
+    axis.text.x = element_text(size = 13),
+    axis.text.y = element_text(size = 13))
 ```
 
 Combining education levels and development status, Graph 2 shows that developed countries have, on average, about 4 more years of schooling than developing countries. 
@@ -112,9 +116,12 @@ ggplot(life, aes(x = fct_reorder(Status, Schooling, .fun = 'median'),
   geom_boxplot(color = "darkcyan") +
   labs(x = '',
        y = 'Years of Schooling') +
-  theme_minimal() +
+  theme_classic() +
   theme(
-    axis.title.y = element_text(face = 'bold'))
+    axis.title.y = element_text(face = 'bold',
+                  margin = margin(t = 0, r = 15, b = 0, l = 5),size=15),
+    axis.text.x = element_text(face='bold',size = 13),
+    axis.text.y = element_text(size = 13))
 ```
 
 Finally, in order to test the hypothesis that education as well as development status positively impacts life expectancy, the below multiple regression gave the following analysis: 
