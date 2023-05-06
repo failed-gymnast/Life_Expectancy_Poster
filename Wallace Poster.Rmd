@@ -1,0 +1,141 @@
+---
+main_topsize: 0.2 # percent coverage of the poster
+main_bottomsize: 0.1
+title: Contributing Factors to Life Expectancy 
+author:
+  - name: Anna Wallace
+    affil: 1
+    email: aw1514a@american.edu
+    main: true
+affiliation:
+  - num: 1
+    address: School of International Service, American University
+main_findings:
+  - "**Increased education leads to longer life expectancy.**"
+output: 
+  posterdown::posterdown_betterport:
+    self_contained: false
+    pandoc_args: --mathjax
+    number_sections: false
+---
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      warning = FALSE,
+                      tidy = FALSE,
+                      message = FALSE,
+                      fig.align = 'center',
+                      out.width = "100%")
+options(knitr.table.format = "html") 
+library(knitr)
+library(rmdformats)
+library(tidyverse)
+library(stargazer)
+library(modelr)
+library(kableExtra)
+library(magrittr)
+library(pagedown)
+```
+
+# Introduction
+
+While mortality rates have vastly decreased over the last century, life expectancy can still vary greatly by country. This study will determine the contributing factors that affect life expectancy, whether that be social, economic, or mortality factors. In particular, it will focus on what effect schooling and a country's development status have on average life expectancy. The main hypothesis is that increased schooling and a developed country status will positively affect life expectancy. This study is extremely important as it can help governments identify the level of education their country has and work to improve it if necessary in order to improve life expectancy. 
+
+# Data
+
+This data was obtained on [Kaggle](https://www.kaggle.com/datasets/kumarajarshi/life-expectancy-who) and it was collected from the [Global Health Observatory data repository](https://www.who.int/data/gho) that is housed under the World Health Organization. All economic data was collected from the United Nations website. It focuses on data from 193 countries during the time period 2000 - 2015. The dataset contains 2,938 observations of 22 different variables, including a country's development status, life expectancy in age, expenditure on health as a percentage of GDP per capita, and the average amount of schooling received. 
+
+# Analysis
+
+Below is a table of summary statistics that groups average life expectancy by a country's development status. 
+
+Looking at a country's life expectancy by development status, it is clear the citizens of developed countries live about 12 years longer on average. 
+
+**Table 1. Life Expectancy by Development Status** 
+```{r groupsum}
+# load dataset
+life = read_csv('Life Expectancy Data.csv')
+
+# clean up table
+life = life %>%
+  rename(life_ex = "Life expectancy",
+         adult_mort = "Adult Mortality",
+         infant_deaths = "infant deaths",
+         pct_expend = "percentage expenditure",
+         hep_b = "Hepatitis B",
+         und_five_deaths = "under-five deaths",
+         total_expend = "Total expenditure",
+         HIV_AIDS = "HIV/AIDS") %>%
+  select(-hep_b, -HIV_AIDS, -Measles, -BMI, -Polio, -Diphtheria, -`thinness  1-19 years`, -`thinness 5-9 years`)
+
+# Create table
+tab = 
+  group_by(life, Status) %>%
+  summarise(
+    n = sum(!is.na(life_ex)),
+    Avg = mean(life_ex, na.rm = T),
+    StdDev = sd(life_ex, na.rm = T),
+    `0` = min(life_ex, na.rm = T),
+    `50` = median(life_ex, na.rm = T),
+    `100` = max(life_ex, na.rm = T)
+  ) %>%
+  na.omit()
+# Format for output
+  tab %>%
+    kable(digits = 1L) %>%
+    column_spec(1, extra_css = "padding-right: 10px;") %>%
+    add_header_above(header = c(" " = 4, "Percentiles" = 3))
+```
+
+But does the average amount of time spent in school affect a country's life expectancy? When education levels were plotted against life expectancy, it shows a clear positive correlation. That is, Graph 1 shows that as the amount of time spent in school increases, so does average life expectancy.
+
+**Graph 1. Life Expectancy per Years Spent in School** 
+```{r schoolviz}
+ggplot(life, aes(y = life_ex, x = Schooling)) +
+  geom_point(shape = 21, alpha = 0.4) +
+  geom_smooth(method = 'lm', se = F, color = "darkcyan", size = 2) +
+  labs(x = 'Years of Schooling',
+       y = 'Life Expectancy') +
+  theme_minimal() +
+  theme(
+    axis.title.y = element_text(face = 'bold'),
+    axis.title.x = element_text(face = 'bold'))
+```
+
+Combining education levels and development status, Graph 2 shows that developed countries have, on average, about 4 more years of schooling than developing countries. 
+
+**Graph 2. Years Spent in School per Development Status**
+```{r devschool viz}
+# visual: box plot
+ggplot(life, aes(x = fct_reorder(Status, Schooling, .fun = 'median'), 
+                y = Schooling)) +
+  geom_boxplot(color = "darkcyan") +
+  labs(x = '',
+       y = 'Years of Schooling') +
+  theme_minimal() +
+  theme(
+    axis.title.y = element_text(face = 'bold'))
+```
+
+Finally, in order to test the hypothesis that education as well as development status positively impacts life expectancy, the below multiple regression gave the following analysis: 
+
+**Table 2. Multiple Regression Analysis**
+```{r model, results = 'asis'}
+## Estimation ----
+
+# estimate three models
+mod1 = lm(life_ex ~ Schooling, data = life)
+mod2 = lm(life_ex ~ Schooling + Status, data = life)
+
+# table of estimates
+stargazer(mod1, mod2, type = 'html', keep.stat = 'n')
+```
+
+This table shows that there is a statistically significant relationship to the 0.01 level between the number of years spent in school and life expectancy; increased education causes increased life expectancy. There is also a statistically significant relationship to the 0.01 level between a country's development status and life expectancy; that is, a country with a developing status has a lower life expectancy.
+
+
+# Findings
+
+This study aimed to find a positive causal relationship between education and life expectancy. After analyzing the data, it is clear that there is a significant and causal relationship between the number of years spent in school and a country's average life expectancy. The more years that citizens of a country spend in school, the longer they will live. In addition, the study also proved that development status does have a significant and causal relationship with life expectancy. Countries with a developing status have a lower life expectancy than those with a developed status.
+
+While there were some limitations to this study such as incomplete data, these results do show that education can have a lasting impact on average life span. 
