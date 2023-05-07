@@ -14,7 +14,7 @@ main_findings:
   - "**Increased education leads to longer life expectancy.**"
 output: 
   posterdown::posterdown_betterport:
-    self_contained: false
+    self_contained: true
     pandoc_args: --mathjax
     number_sections: false
 ---
